@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมุดโทรศัพท์ GUSCO &amp; GEM</title>
+<meta name="description" content="เบอร์โทรและอีเมลติดต่อพนักงาน GUSCO & GEM">
+<meta name="theme-color" content="#0b3b60">
+
+<!-- ไอคอนสำหรับ iPhone / iPad -->
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="สมุดโทรศัพท์">
+
+<!-- ไอคอนสำหรับ Android / Chrome -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="สมุดโทรศัพท์">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
+<script>
+  /* =========================================================
+   *  ★ แก้บรรทัดเดียว: วางลิงก์ Web App (/exec) จาก Apps Script
+   * ========================================================= */
+  var EXEC_URL = 'https://script.google.com/macros/s/AKfycbzgbV0jjK3woswNEdfWZdByUSnWDKtd8nazrWvuJkMWJkUb_MWNhFVEP0uxyaaQXeheAg/exec';
+
+  (function () {
+    var ready = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]{20,}\/exec/.test(EXEC_URL);
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      /[?&]source=pwa\b/.test(location.search);
+    // เปิดจากไอคอนบนหน้าจอโฮม → ไปที่แอปทันที
+    if (standalone && ready) { location.replace(EXEC_URL); return; }
+    // เปิดใน LINE → สั่งให้เปิดด้วยเบราว์เซอร์ของเครื่องแทน (เพิ่มลงหน้าจอโฮมจาก LINE ไม่ได้)
+    if (/\bLine\//i.test(navigator.userAgent) && !/[?&]openExternalBrowser=1\b/.test(location.search)) {
+      location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1');
+    }
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#0b3b60;--navy2:#12568a;--teal:#0f8b8d;--ink:#17212b;--mut:#5f6b76;--line:#e2e8ee}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Sarabun',system-ui,sans-serif;color:var(--ink);min-height:100vh;
+       background:linear-gradient(160deg,var(--navy),var(--navy2) 55%,var(--teal));
+       display:flex;align-items:center;justify-content:center;
+       padding:calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+  .card{width:100%;max-width:420px;background:#fff;border-radius:22px;padding:28px 22px 22px;
+        box-shadow:0 18px 50px rgba(4,24,42,.35);text-align:center}
+  .icon{width:104px;height:104px;border-radius:24px;box-shadow:0 8px 22px rgba(11,59,96,.3)}
+  h1{font-size:22px;margin:16px 0 2px}
+  .sub{color:var(--mut);font-size:14px;margin:0 0 20px}
+  .btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font:700 16px 'Sarabun',sans-serif;
+       text-decoration:none;cursor:pointer;margin-top:10px}
+  .pri{background:var(--navy);color:#fff}
+  .sec{background:#e8f6f6;color:var(--teal)}
+  .hidden{display:none!important}
+  .box{text-align:left;background:#f5f8fb;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:18px}
+  .box h2{font-size:15px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .box ol{margin:0;padding-left:20px;font-size:14.5px;line-height:1.6}
+  .warn{background:#fff7e6;border-color:#f7d79b}
+  .k{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:7px;padding:0 6px;font-weight:600}
+  .share{display:inline-block;width:16px;height:16px;vertical-align:-3px}
+  .note{color:var(--mut);font-size:12.5px;margin-top:14px}
+</style>
+</head>
+<body>
+<main class="card">
+  <img class="icon" src="icon-180.png" alt="ไอคอนสมุดโทรศัพท์">
+  <h1>สมุดโทรศัพท์</h1>
+  <p class="sub">เบอร์โทร &amp; อีเมลติดต่อพนักงาน GUSCO &amp; GEM</p>
+
+  <a id="btnOpen" class="btn pri" href="#">เปิดสมุดโทรศัพท์</a>
+  <button id="btnInstall" class="btn sec hidden">ติดตั้งลงหน้าจอโฮม</button>
+
+  <div id="notReady" class="box warn hidden">
+    <h2>⚠️ ยังไม่ได้ตั้งค่าลิงก์แอป</h2>
+    <div style="font-size:14px">ผู้ดูแลต้องแก้ค่า <b>EXEC_URL</b> ในไฟล์ index.html ให้เป็นลิงก์ Web App (/exec) ก่อน</div>
+  </div>
+
+  <div id="inApp" class="box warn hidden">
+    <h2>🌐 กรุณาเปิดด้วยเบราว์เซอร์</h2>
+    <div style="font-size:14px">แอปนี้ถูกเปิดอยู่ในแอปแชต จึงเพิ่มลงหน้าจอโฮมไม่ได้ แตะเมนู <span class="k">⋯</span> แล้วเลือก
+      <b>เปิดใน Safari / เปิดในเบราว์เซอร์</b></div>
+  </div>
+
+  <div id="ios" class="box hidden">
+    <h2>📱 iPhone / iPad</h2>
+    <ol>
+      <li>เปิดหน้านี้ด้วย <b>Safari</b></li>
+      <li>แตะปุ่ม <b>แชร์</b>
+        <svg class="share" viewBox="0 0 24 24" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
+        ด้านล่างจอ</li>
+      <li>เลื่อนลง แล้วแตะ <b>เพิ่มไปยังหน้าจอโฮม</b></li>
+      <li>แตะ <b>เพิ่ม</b> มุมขวาบน</li>
+    </ol>
+  </div>
+
+  <div id="android" class="box hidden">
+    <h2>🤖 Android</h2>
+    <ol>
+      <li>เปิดหน้านี้ด้วย <b>Chrome</b></li>
+      <li>แตะเมนู <span class="k">⋮</span> มุมขวาบน</li>
+      <li>เลือก <b>เพิ่มลงในหน้าจอหลัก</b> หรือ <b>ติดตั้งแอป</b></li>
+      <li>แตะ <b>เพิ่ม</b> / <b>ติดตั้ง</b></li>
+    </ol>
+  </div>
+
+  <p class="note">ติดตั้งครั้งเดียว ต่อไปแตะไอคอนสมุดโทรศัพท์บนหน้าจอเพื่อเปิดใช้งานได้ทันที</p>
+</main>
+
+<script>
+  (function () {
+    var ua = navigator.userAgent;
+    var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var isAndroid = /Android/i.test(ua);
+    var inApp = /\bLine\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua);
+    var ready = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]{20,}\/exec/.test(EXEC_URL);
+
+    var open = document.getElementById('btnOpen');
+    if (ready) open.href = EXEC_URL;
+    else { open.classList.add('hidden'); document.getElementById('notReady').classList.remove('hidden'); }
+
+    if (inApp) document.getElementById('inApp').classList.remove('hidden');
+    if (isIOS) document.getElementById('ios').classList.remove('hidden');
+    else if (isAndroid) document.getElementById('android').classList.remove('hidden');
+    else { document.getElementById('ios').classList.remove('hidden'); document.getElementById('android').classList.remove('hidden'); }
+
+    // Android Chrome: ปุ่มติดตั้งในคลิกเดียว (ถ้าเบราว์เซอร์รองรับ)
+    var deferred = null, btn = document.getElementById('btnInstall');
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault(); deferred = e; btn.classList.remove('hidden');
+    });
+    btn.addEventListener('click', function () {
+      if (!deferred) return;
+      deferred.prompt();
+      deferred.userChoice.then(function () { deferred = null; btn.classList.add('hidden'); });
+    });
+    window.addEventListener('appinstalled', function () { btn.classList.add('hidden'); });
+  })();
+</script>
+</body>
+</html>
