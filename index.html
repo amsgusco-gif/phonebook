@@ -22,19 +22,29 @@
 
 <script>
   /* =========================================================
-   *  ★ แก้บรรทัดเดียว: วางลิงก์ Web App (/exec) จาก Apps Script
+   *  ★ ลิงก์ Web App (/exec) จาก Apps Script
    * ========================================================= */
   var EXEC_URL = 'https://script.google.com/macros/s/AKfycbzgbV0jjK3woswNEdfWZdByUSnWDKtd8nazrWvuJkMWJkUb_MWNhFVEP0uxyaaQXeheAg/exec';
 
+  /* ---------- จำอีเมลไว้ในแอปที่ติดตั้งบนมือถือ (ถาวร) ---------- */
+  var PB_KEY = 'pb_user';
+  function pbGet() { try { return localStorage.getItem(PB_KEY) || ''; } catch (e) { return ''; } }
+  function pbSet(v) { try { if (v) localStorage.setItem(PB_KEY, v); else localStorage.removeItem(PB_KEY); } catch (e) {} }
+  function pbReady() { return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]{20,}\/exec/.test(EXEC_URL); }
+  function pbAppUrl(email) { return EXEC_URL + (email ? '?u=' + encodeURIComponent(email) : ''); }
+  function pbParam(name) { return new RegExp('[?&]' + name + '=1\\b').test(location.search); }
+
   (function () {
-    var ready = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]{20,}\/exec/.test(EXEC_URL);
     var standalone = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
       /[?&]source=pwa\b/.test(location.search);
-    // เปิดจากไอคอนบนหน้าจอโฮม → ไปที่แอปทันที
-    if (standalone && ready) { location.replace(EXEC_URL); return; }
+    // เปิดจากไอคอนบนหน้าจอโฮม + เคยกรอกอีเมลแล้ว → เข้าแอปทันที (ไม่ต้องกรอกซ้ำ)
+    if (standalone && pbReady() && !pbParam('change') && pbGet()) {
+      location.replace(pbAppUrl(pbGet()));
+      return;
+    }
     // เปิดใน LINE → สั่งให้เปิดด้วยเบราว์เซอร์ของเครื่องแทน (เพิ่มลงหน้าจอโฮมจาก LINE ไม่ได้)
-    if (/\bLine\//i.test(navigator.userAgent) && !/[?&]openExternalBrowser=1\b/.test(location.search)) {
+    if (/\bLine\//i.test(navigator.userAgent) && !pbParam('openExternalBrowser')) {
       location.replace(location.pathname + (location.search ? location.search + '&' : '?') + 'openExternalBrowser=1');
     }
   })();
@@ -54,12 +64,20 @@
         box-shadow:0 18px 50px rgba(4,24,42,.35);text-align:center}
   .icon{width:104px;height:104px;border-radius:24px;box-shadow:0 8px 22px rgba(11,59,96,.3)}
   h1{font-size:22px;margin:16px 0 2px}
-  .sub{color:var(--mut);font-size:14px;margin:0 0 20px}
+  .sub{color:var(--mut);font-size:14px;margin:0 0 18px}
   .btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font:700 16px 'Sarabun',sans-serif;
        text-decoration:none;cursor:pointer;margin-top:10px}
   .pri{background:var(--navy);color:#fff}
   .sec{background:#e8f6f6;color:var(--teal)}
   .hidden{display:none!important}
+  .lbl{display:block;text-align:left;font-size:14px;font-weight:600;margin:0 0 6px}
+  .inp{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px;font:16px 'Sarabun',sans-serif;
+       background:#fbfcfd;text-align:center}
+  .inp:focus{outline:2px solid var(--teal);border-color:transparent}
+  .err{color:#c62828;font-size:13.5px;min-height:18px;margin-top:6px}
+  .who{background:#f5f8fb;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;text-align:left}
+  .who b{word-break:break-all}
+  .link{border:0;background:none;color:var(--teal);font:600 14px 'Sarabun',sans-serif;text-decoration:underline;cursor:pointer;padding:0;margin-left:4px}
   .box{text-align:left;background:#f5f8fb;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:18px}
   .box h2{font-size:15px;margin:0 0 8px;display:flex;align-items:center;gap:8px}
   .box ol{margin:0;padding-left:20px;font-size:14.5px;line-height:1.6}
@@ -75,6 +93,16 @@
   <h1>สมุดโทรศัพท์</h1>
   <p class="sub">เบอร์โทร &amp; อีเมลติดต่อพนักงาน GUSCO &amp; GEM</p>
 
+  <!-- ยังไม่เคยกรอกอีเมลบนเครื่องนี้ -->
+  <div id="emailForm" class="hidden">
+    <label class="lbl" for="email">อีเมลบริษัทของท่าน <span style="color:var(--mut);font-weight:400">(กรอกครั้งแรกครั้งเดียว)</span></label>
+    <input id="email" class="inp" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="name@gusco.co.th">
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- เคยกรอกแล้ว -->
+  <div id="whoBox" class="who hidden">👤 เข้าใช้ด้วย <b id="whoEmail"></b><button class="link" id="btnChange" type="button">เปลี่ยน</button></div>
+
   <a id="btnOpen" class="btn pri" href="#">เปิดสมุดโทรศัพท์</a>
   <button id="btnInstall" class="btn sec hidden">ติดตั้งลงหน้าจอโฮม</button>
 
@@ -89,29 +117,31 @@
       <b>เปิดใน Safari / เปิดในเบราว์เซอร์</b></div>
   </div>
 
-  <div id="ios" class="box hidden">
-    <h2>📱 iPhone / iPad</h2>
-    <ol>
-      <li>เปิดหน้านี้ด้วย <b>Safari</b></li>
-      <li>แตะปุ่ม <b>แชร์</b>
-        <svg class="share" viewBox="0 0 24 24" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
-        ด้านล่างจอ</li>
-      <li>เลื่อนลง แล้วแตะ <b>เพิ่มไปยังหน้าจอโฮม</b></li>
-      <li>แตะ <b>เพิ่ม</b> มุมขวาบน</li>
-    </ol>
-  </div>
+  <div id="installHelp">
+    <div id="ios" class="box hidden">
+      <h2>📱 iPhone / iPad</h2>
+      <ol>
+        <li>เปิดหน้านี้ด้วย <b>Safari</b></li>
+        <li>แตะปุ่ม <b>แชร์</b>
+          <svg class="share" viewBox="0 0 24 24" fill="none" stroke="#0b5cad" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/></svg>
+          ด้านล่างจอ</li>
+        <li>เลื่อนลง แล้วแตะ <b>เพิ่มไปยังหน้าจอโฮม</b></li>
+        <li>แตะ <b>เพิ่ม</b> มุมขวาบน</li>
+      </ol>
+    </div>
 
-  <div id="android" class="box hidden">
-    <h2>🤖 Android</h2>
-    <ol>
-      <li>เปิดหน้านี้ด้วย <b>Chrome</b></li>
-      <li>แตะเมนู <span class="k">⋮</span> มุมขวาบน</li>
-      <li>เลือก <b>เพิ่มลงในหน้าจอหลัก</b> หรือ <b>ติดตั้งแอป</b></li>
-      <li>แตะ <b>เพิ่ม</b> / <b>ติดตั้ง</b></li>
-    </ol>
-  </div>
+    <div id="android" class="box hidden">
+      <h2>🤖 Android</h2>
+      <ol>
+        <li>เปิดหน้านี้ด้วย <b>Chrome</b></li>
+        <li>แตะเมนู <span class="k">⋮</span> มุมขวาบน</li>
+        <li>เลือก <b>เพิ่มลงในหน้าจอหลัก</b> หรือ <b>ติดตั้งแอป</b></li>
+        <li>แตะ <b>เพิ่ม</b> / <b>ติดตั้ง</b></li>
+      </ol>
+    </div>
 
-  <p class="note">ติดตั้งครั้งเดียว ต่อไปแตะไอคอนสมุดโทรศัพท์บนหน้าจอเพื่อเปิดใช้งานได้ทันที</p>
+    <p class="note">ติดตั้งครั้งเดียว ต่อไปแตะไอคอนสมุดโทรศัพท์บนหน้าจอเพื่อเปิดใช้งานได้ทันที</p>
+  </div>
 </main>
 
 <script>
@@ -120,19 +150,53 @@
     var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     var isAndroid = /Android/i.test(ua);
     var inApp = /\bLine\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(ua);
-    var ready = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]{20,}\/exec/.test(EXEC_URL);
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      /[?&]source=pwa\b/.test(location.search);
+    function $(id) { return document.getElementById(id); }
 
-    var open = document.getElementById('btnOpen');
-    if (ready) open.href = EXEC_URL;
-    else { open.classList.add('hidden'); document.getElementById('notReady').classList.remove('hidden'); }
+    var open = $('btnOpen');
+    if (!pbReady()) { open.classList.add('hidden'); $('notReady').classList.remove('hidden'); return; }
 
-    if (inApp) document.getElementById('inApp').classList.remove('hidden');
-    if (isIOS) document.getElementById('ios').classList.remove('hidden');
-    else if (isAndroid) document.getElementById('android').classList.remove('hidden');
-    else { document.getElementById('ios').classList.remove('hidden'); document.getElementById('android').classList.remove('hidden'); }
+    // ?change=1 → มาจากปุ่ม "เปลี่ยนอีเมล" ในแอป
+    var changing = pbParam('change');
+
+    function showState() {
+      var saved = pbGet();
+      var ask = !saved || changing;
+      $('emailForm').classList.toggle('hidden', !ask);
+      $('whoBox').classList.toggle('hidden', ask);
+      if (saved) $('whoEmail').textContent = saved;
+      if (ask && saved) $('email').value = saved;
+      open.textContent = ask ? 'เข้าใช้งาน' : 'เปิดสมุดโทรศัพท์';
+      open.href = ask ? '#' : pbAppUrl(saved);
+    }
+
+    function submit(ev) {
+      if ($('emailForm').classList.contains('hidden')) return;   // มีอีเมลแล้ว → ลิงก์ทำงานตามปกติ
+      ev.preventDefault();
+      var em = $('email').value.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { $('err').textContent = 'กรุณากรอกอีเมลให้ถูกต้อง'; return; }
+      pbSet(em);
+      location.href = pbAppUrl(em);
+    }
+
+    open.addEventListener('click', submit);
+    $('email').addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(e); });
+    $('btnChange').addEventListener('click', function () { changing = true; showState(); $('email').focus(); });
+    showState();
+
+    // แอปที่ติดตั้งแล้วไม่ต้องแสดงวิธีติดตั้ง
+    if (standalone) $('installHelp').classList.add('hidden');
+    else {
+      if (inApp) $('inApp').classList.remove('hidden');
+      if (isIOS) $('ios').classList.remove('hidden');
+      else if (isAndroid) $('android').classList.remove('hidden');
+      else { $('ios').classList.remove('hidden'); $('android').classList.remove('hidden'); }
+    }
 
     // Android Chrome: ปุ่มติดตั้งในคลิกเดียว (ถ้าเบราว์เซอร์รองรับ)
-    var deferred = null, btn = document.getElementById('btnInstall');
+    var deferred = null, btn = $('btnInstall');
     window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault(); deferred = e; btn.classList.remove('hidden');
     });
